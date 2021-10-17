@@ -127,10 +127,13 @@ int main(int argc, char **argv)
     }
     gettimeofday(&end, NULL);
     total_time_serial = (WALLTIME(end) - WALLTIME(start));
-    //print_matrices();
+    // print_matrices();
 
     //TODO: OpenMP
+    omp_set_num_threads(num_threads);
     gettimeofday(&start, NULL);
+
+#pragma omp parallel for
     for (i = 0; i < m; i++)
     {
         for (j = 0; j < n; j++)
