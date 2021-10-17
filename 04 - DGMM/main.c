@@ -67,7 +67,36 @@ void print_matrices()
 }
 
 //TODO: Pthreads - function
+void *fill_C_pthreads(void *thread_num_p)
+{
+    // thread_num_p is the id of the thread calling the method
+    int thread_id = *(int *)(thread_num_p);
+    printf("[%d] entering method...\n", thread_id);
+    double sum = 0;
+    int p, i, j, partition_size, row_start, row_end;
 
+    partition_size = m / num_threads;
+    row_start = thread_id * partition_size;
+    row_end = (thread_id + 1) * partition_size;
+
+    printf("[%d] row_start: %d, row_end: %d\n", thread_id, row_start, row_end);
+
+    for (i = row_start; i < row_end; i++)
+    {
+        printf("i = %d\n", i);
+        for (j = 0; j < n; j++)
+        {
+            sum = 0;
+            for (p = 0; p < k; p++)
+            {
+                sum = sum + A[i * k + p] * B[p * n + j];
+            }
+            C_pthreads[i * n + j] = sum;
+        }
+    }
+    printf("[%d] finished.\n", thread_id);
+    return 0;
+}
 //TODO end
 
 int main(int argc, char **argv)
@@ -153,7 +182,24 @@ int main(int argc, char **argv)
     //TODO: Pthreads - spawn threads
     gettimeofday(&start, NULL);
 
+    // pthread_t *threads = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
+    pthread_t threads[num_threads];
+    int thread_id[num_threads];
+
+    for (i = 0; i < num_threads; ++i)
+    {
+        printf("[%d] executing...\n", i);
+        thread_id[i] = i;
+        pthread_create(&threads[i], NULL, fill_C_pthreads, &thread_id[i]);
+    }
+
+    for (i = 0; i < num_threads; ++i)
+    {
+        pthread_join(threads[i], NULL);
+    }
+
     gettimeofday(&end, NULL);
+
     total_time_pthreads = (WALLTIME(end) - WALLTIME(start));
     //TODO end
 
