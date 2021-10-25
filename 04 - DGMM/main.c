@@ -66,9 +66,45 @@ void print_matrices()
     }
 }
 
-//TODO: Pthreads - function
+// Task 2a
+// Method called for all pthreads
+// Takes in our pointer to the thread id
+// Each thread works on a different partition of the matrix muliplication
+void *fill_C_pthreads(void *thread_num_p)
+{
+    double sum = 0;
+    int p, i, j;
+    int thread_id = *(int *)(thread_num_p); // Have to cast the void pointer back to an int
+    int last_thread = num_threads - 1;
+    int partition_size = m / num_threads; // Distribute the work evenly among the threads
+    int row_start = thread_id * partition_size;
 
-//TODO end
+    // If the number of rows are not divisable by the number of threads
+    // we give the last thread the extra rows
+    if (m % num_threads != 0 && thread_id == last_thread)
+    {
+        partition_size += m % num_threads;
+    }
+
+    int row_end = row_start + partition_size; // Having this after the if so we get the right partion size
+
+    // The same matrix-matrix multiplication done by task 1,
+    // but now each thread will only do part of the muliplication
+    // using row_start and row_end for refrence where to work
+    for (i = row_start; i < row_end; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            sum = 0;
+            for (p = 0; p < k; p++)
+            {
+                sum = sum + A[i * k + p] * B[p * n + j];
+            }
+            C_pthreads[i * n + j] = sum;
+        }
+    }
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -127,10 +163,13 @@ int main(int argc, char **argv)
     }
     gettimeofday(&end, NULL);
     total_time_serial = (WALLTIME(end) - WALLTIME(start));
-    //print_matrices();
+    // print_matrices();
 
-    //TODO: OpenMP
+    // Task 1
+    omp_set_num_threads(num_threads); // Setting the number of threads
     gettimeofday(&start, NULL);
+
+#pragma omp parallel for // parallelizing the for-loop
     for (i = 0; i < m; i++)
     {
         for (j = 0; j < n; j++)
@@ -145,14 +184,27 @@ int main(int argc, char **argv)
     }
     gettimeofday(&end, NULL);
     total_time_openmp = (WALLTIME(end) - WALLTIME(start));
-    //TODO end
 
-    //TODO: Pthreads - spawn threads
+    // Task 2b
     gettimeofday(&start, NULL);
+    pthread_t threads[num_threads];
+    int thread_id[num_threads];
+
+    // Filling up the threads array with threads executing the fill_c_pthreads
+    for (i = 0; i < num_threads; ++i)
+    {
+        thread_id[i] = i;
+        pthread_create(&threads[i], NULL, fill_C_pthreads, &thread_id[i]);
+    }
+
+    // After all threads have done their work we join them
+    for (i = 0; i < num_threads; ++i)
+    {
+        pthread_join(threads[i], NULL);
+    }
 
     gettimeofday(&end, NULL);
     total_time_pthreads = (WALLTIME(end) - WALLTIME(start));
-    //TODO end
 
     gettimeofday(&start, NULL);
     // Documentation for GEMM:
