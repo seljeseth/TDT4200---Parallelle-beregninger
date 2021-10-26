@@ -122,8 +122,8 @@ int main(int argc, char **argv)
 	//TODO END
 
 	// TODO 1 c - block size and grid size. gridSize should depend on the blockSize and output dimensions.
-	dim3 blockSize(32, 32, 1);
-	dim3 gridSize(ceil((float)out_width / blockSize.x), ceil((float)out_height / blockSize.y), 1);
+	dim3 blockSize(32, 32);
+	dim3 gridSize((out_width / blockSize.x), (out_height / blockSize.y));
 	// TODO END
 
 	cudaEvent_t start, stop;
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 
 	//TODO 2 a - GPU computation
 	// Change the function call so that it becomes a kernel call. Change the input and output pixel variables to be device-side instead of host-side.
-	bilinear_kernel<<<blockSize, gridSize>>>(d_pixels_in, d_pixels_out, in_width, in_height, out_width, out_height);
+	bilinear_kernel<<<gridSize, blockSize>>>(d_pixels_in, d_pixels_out, in_width, in_height, out_width, out_height);
 	// TODO END
 
 	cudaEventRecord(stop);
