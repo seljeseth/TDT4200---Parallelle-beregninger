@@ -66,12 +66,12 @@ __global__ void bilinear_kernel(pixel *d_pixels_in, pixel *d_pixels_out,
 		printf("i:%d  j:%d", i, j);
 		pixel new_pixel;
 
-		float row = i * (in_height - 1) / (float)out_height;
-		float col = j * (in_width - 1) / (float)out_width;
+		float row = j * (in_height - 1) / (float)out_height;
+		float col = i * (in_width - 1) / (float)out_width;
 
 		bilinear(d_pixels_in, row, col, &new_pixel, in_width, in_height);
 
-		d_pixels_out[i * out_width + j] = new_pixel;
+		d_pixels_out[j * out_width + i] = new_pixel;
 	}
 }
 
@@ -149,7 +149,6 @@ int main(int argc, char **argv)
 	printf("Time spent %.3f seconds\n", spentTime / 1000);
 
 	//TODO 3 a - Copy the device-side data into the host-side variable
-	cudaMemcpy(h_pixels_in, d_pixels_in, sizeof(pixel) * in_width * in_height, cudaMemcpyDeviceToHost);
 	cudaMemcpy(h_pixels_out, d_pixels_out, sizeof(pixel) * out_width * out_height, cudaMemcpyDeviceToHost);
 	// TODO END
 
