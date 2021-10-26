@@ -73,20 +73,6 @@ __global__ void bilinear_kernel(pixel *d_pixels_in, pixel *d_pixels_out,
 
 		d_pixels_out[i * out_width + j] = new_pixel;
 	}
-	/*for (int i = 0; i < out_height; i++)
-	{
-		for (int j = 0; j < out_width; j++)
-		{
-			pixel new_pixel;
-
-			float row = i * (in_height - 1) / (float)out_height;
-			float col = j * (in_width - 1) / (float)out_width;
-
-			bilinear(d_pixels_in, row, col, &new_pixel, in_width, in_height);
-
-			d_pixels_out[i * out_width + j] = new_pixel;
-		}
-	}*/
 }
 
 int main(int argc, char **argv)
@@ -118,7 +104,7 @@ int main(int argc, char **argv)
 	pixel *d_pixels_out;
 
 	//TODO 1 a - cuda malloc
-	cudaMalloc(&d_pixels_in, sizeof(pixel) * out_width * out_height);
+	cudaMalloc(&d_pixels_in, sizeof(pixel) * in_width * in_height);
 	cudaMalloc(&d_pixels_out, sizeof(pixel) * out_width * out_height);
 	if (d_pixels_in == NULL || d_pixels_out == NULL)
 	{
@@ -131,14 +117,13 @@ int main(int argc, char **argv)
 	cudaEventCreate(&stop_transfer);
 	cudaEventRecord(start_transfer);
 	//TODO 1 b - cuda memcpy
-	cudaMemcpy(d_pixels_in, h_pixels_in, sizeof(pixel) * out_width * out_height, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_pixels_in, h_pixels_in, sizeof(pixel) * in_width * in_height, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_pixels_out, h_pixels_out, sizeof(pixel) * out_width * out_height, cudaMemcpyHostToDevice);
 	//TODO END
 
 	// TODO 1 c - block size and grid size. gridSize should depend on the blockSize and output dimensions.
 	dim3 blockSize(32, 32, 1);
 	dim3 gridSize(ceil((float)out_width / blockSize.x), ceil((float)out_height / blockSize.y), 1);
-	// ( ceil( float(N) / threads_per_block.x )
 	// TODO END
 
 	cudaEvent_t start, stop;
@@ -164,7 +149,7 @@ int main(int argc, char **argv)
 	printf("Time spent %.3f seconds\n", spentTime / 1000);
 
 	//TODO 3 a - Copy the device-side data into the host-side variable
-	cudaMemcpy(h_pixels_in, d_pixels_in, sizeof(pixel) * out_width * out_height, cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_pixels_in, d_pixels_in, sizeof(pixel) * in_width * in_height, cudaMemcpyDeviceToHost);
 	cudaMemcpy(h_pixels_out, d_pixels_out, sizeof(pixel) * out_width * out_height, cudaMemcpyDeviceToHost);
 	// TODO END
 
