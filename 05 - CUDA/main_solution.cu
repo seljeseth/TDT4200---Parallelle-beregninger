@@ -59,8 +59,8 @@ __global__ void bilinear_kernel(pixel *d_pixels_in, pixel *d_pixels_out,
 								int out_width, int out_height)
 {
 	// TODO 2 c - Parallelize the kernel
-	int i = (blockDim.x * blockDim.x) + threadIdx.x;
-	int j = (blockDim.y * blockDim.y) + threadIdx.y;
+	int i = (blockDim.x * blockIdx.x) + threadIdx.x;
+	int j = (blockDim.y * blockIdx.y) + threadIdx.y;
 	if ((i < out_height) && (j < out_width))
 	{
 		printf("i:%d  j:%d", i, j);
